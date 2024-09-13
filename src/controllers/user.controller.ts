@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { getAllUsers, createUser } from '../services/userService';
+
 import Joi from 'joi';
-import { userSchema } from '../utils/userSchema';
+import { createUser, getAllUsers } from '../services/user.service';
+import { userSchema } from '../utils/user.schema';
 
 
 export const getUsers = async (req: Request, res: Response) => {
@@ -22,7 +23,7 @@ export const addUser = async (req: Request, res: Response) => {
     return res.status(400).json({ error: error.details[0].message });
   }
   try {
-    const user = await createUser(name, email);
+    const user = await createUser(value);
     res.status(201).json(user);
   } catch (error) {
     res.status(400).json({ error: 'Unable to create user' });
