@@ -15,10 +15,10 @@ export const getUsers = async (req: Request, res: Response) => {
 };
 
 export const addUser = async (req: Request, res: Response) => {
-  const { name, email } = req.body;
+  
 
   // validation input menggunakan joi
-  const { error, value } = userSchema.validate({ name, email });
+  const { error, value } = userSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
   }
