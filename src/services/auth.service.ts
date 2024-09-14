@@ -1,7 +1,7 @@
 import { createUserDTO } from '../dto/user.dto';
 import prisma from '../prisma/prisma';
-import { hashPassword } from '../utils/encryption';
-import { RegisterDTO } from '../dto/auth.dto';
+import { comparePassword, hashPassword } from '../utils/encryption';
+import { LoginDTO, RegisterDTO } from '../dto/auth.dto';
 
 export const registerUser = async (data: RegisterDTO) => {
  
@@ -12,4 +12,15 @@ export const registerUser = async (data: RegisterDTO) => {
       }
     });
   };
+export const LoginUser = async (data: LoginDTO) => {
+ 
+  return  await prisma.user.findUnique({
+      where: {
+        email: data.email,
+      }
+    });
+
+  };
+
+  
   
