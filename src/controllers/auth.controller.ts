@@ -36,9 +36,8 @@ export const LoginController = async(req: Request, res: Response) =>{
       value.password, user.password
     );
     if (!isValidPassword) return res.status(400).json({ error: 'Invalid email or password' });
-    const token = jwt.sign({ id: user.id, email: user.email }, 'your_secret_key', { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role}, process.env.JWT_SECRET || 'your_secret_key', { expiresIn: '1h' });
     res.json({ token });
-    res.json(user);
   } catch (error) {
     res.json(error);
   }
