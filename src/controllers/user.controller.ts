@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 
-import Joi from 'joi';
 import { createUser, getAllUsers } from '../services/user.service';
 import { userSchema } from '../utils/user.schema';
 
@@ -16,7 +15,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const addUser = async (req: Request, res: Response) => {
   
-
+  
   // validation input menggunakan joi
   const { error, value } = userSchema.validate(req.body);
   if (error) {
