@@ -9,8 +9,5 @@ export type createUserDTO = {
 export type updateUserDTO = {
   name: string;
   email: string;
-  password: string;
-  username?: String;
-  bio?: String;
-  avatarUrl?: String;
+  password: string;  
 };

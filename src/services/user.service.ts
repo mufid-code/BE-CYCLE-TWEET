@@ -55,7 +55,7 @@ export default new class UserService {
     return await prisma.user.update({
       where: { id: userId},
       data: {
-        ...data ,
+        ...data,
         password: await hashPassword(data.password),
       }
 

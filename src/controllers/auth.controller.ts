@@ -17,7 +17,7 @@ class AuthController {
       const existingUser = await userService.findUserByEmail( req.body.email);
       if (existingUser) return res.status(400).json({ error: 'Email already exists' });
   
-      const user = await authService.registerUser(value);
+      const user = await authService.register(value);
       res.status(201).json(user);
     } catch (error) {
       res.status(500).json({ error: 'Failed to register user' });
@@ -29,18 +29,12 @@ class AuthController {
       const value = await loginSchema.validateAsync(req.body);
       
       const user = await authService.LoginUser(value);
-      if (!user) return res.status(400).json({ error: 'Invalid email or password' });
-  
-      const isValidPassword = await comparePassword(
-        value.password, user.password
-      );
-      if (!isValidPassword) return res.status(400).json({ error: 'Invalid email or password' });
-      const tokens = await userService.generateTokens(user.id);
       // const token = jwt.sign({ id: user.id, email: user.email, role: user.role}, process.env.JWT_SECRET || 'your_secret_key', { expiresIn: '1h' });
-      res.json({ tokens });
+      res.json(user);
     } catch (error) {
       res.json(error);
     }
   }
+  
 }
 export default new AuthController();
