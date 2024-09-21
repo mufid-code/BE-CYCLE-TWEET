@@ -2,30 +2,66 @@ import { Request, Response } from 'express';
 
 import { userSchema } from '../utils/user.schema';
 import UserService from '../services/user.service';
+import userService from '../services/user.service';
 
 class UserController{
-   async getUsers(req: Request, res: Response) {
+  async create(req: Request, res: Response) {
+    try {
+      const value = await userSchema.validateAsync(req.body);
+      
+      const user = await userService.createUser(value);
+      res.json(user);
+    } catch (error) {
+      res.json(error);
+    }
+  }
+  async getUsers(req: Request, res: Response) {
     try {
       const users = await UserService.getAllUsers();
       res.json(users);
     } catch (error) {
-      res.status(500).json({ error: 'Unable to fetch users' });
+      res.status(500).json(error);
     }
   };
-  
-   async addUser(req: Request, res: Response) {
-    // validation input menggunakan joi
+  async findAll(req: Request, res: Response) {
     try {
-      const { error, value } = userSchema.validate(req.body);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
-      }
-      const user = await UserService.createUser(value);
-      res.status(201).json(user);
-    } catch (error) {
-      res.status(400).json({ error: 'Unable to create user' });
+      const users = await userService.getAllUsers();
+      res.json(users);
+    } catch (error: unknown) {
+      res.json(error);
     }
-  };
+  }
+  
+  async findById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const user = await userService.getUserById(Number(id));
+      res.json(user);
+    } catch (error) {
+      res.json(error);
+    }
+  }
+  
+  async update(req: Request, res: Response) {
+    try {
+      const userId  = Number(req.params.id);
+      const value = await userSchema.validateAsync(req.body);
+      const user = await userService.updateUser(userId, value);
+      res.json(user);
+    } catch (error) {
+      res.json(error);
+    }
+  }
+  async delete(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
 
+      const users = await userService.deleteUser(Number(id));
+      res.json(users);
+    } catch (error) {
+      res.status(500).json(error);
+    }
+  }
 }
+
 export default new UserController()

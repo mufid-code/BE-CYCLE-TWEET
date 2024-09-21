@@ -1,16 +1,48 @@
-import { createUserDTO } from '../dto/user.dto';
+import { createUserDTO, updateUserDTO } from '../dto/user.dto';
 import prisma from '../prisma/prisma';
 import bcrypt from 'bcrypt'
 import { hashPassword } from '../utils/encryption';
 import jwt from 'jsonwebtoken';
+import { User } from '@prisma/client';
+import { customError, CustomErrorCode } from '../types/custom-error';
 
 export default new class UserService {
-   async getAllUsers  () {
+  async deleteUser(id: number): Promise<User | null> {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) {
+      throw {
+        status: 404,
+        message: "User not found!",
+        code: CustomErrorCode.USER_NOT_EXISTS,
+      } as customError;
+    }
+
+    return await prisma.user.delete({
+      where: { id },
+    });
+
+  }
+  async getAllUsers(): Promise<User[]> {
     return await prisma.user.findMany();
-  };
-  
-   async createUser(data: createUserDTO) {
-   
+  }
+  async getUserById(id: number): Promise<User | null> {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw {
+        status: 404,
+        message: "User not found!",
+        code: CustomErrorCode.USER_NOT_EXISTS,
+      } as customError;
+    }
+
+    return user;
+  }
+  async createUser(data: createUserDTO): Promise<User | null> {
     return await prisma.user.create({
       data: {
         ...data,
@@ -19,6 +51,16 @@ export default new class UserService {
       }
     });
   };
+  async updateUser(userId: number, data: updateUserDTO) {
+    return await prisma.user.update({
+      where: { id: userId},
+      data: {
+        ...data ,
+        password: await hashPassword(data.password),
+      }
+
+    })
+  }
   
    async findUserByEmail(email:string) {
     return await prisma.user.findUnique({
