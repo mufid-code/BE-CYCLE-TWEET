@@ -1,6 +1,6 @@
 export type createThreadDTO = {
     content: string;
-    imageUrl: string;
+    imageUrl?: string;
   }
   
   export type updateThreadDTO = createThreadDTO & { };

@@ -10,7 +10,7 @@ class ThreadService {
     return await prisma.thread.create({
       data: {
        ...data,
-        userId : userId
+        userId
       },
     });
   }
@@ -21,6 +21,7 @@ class ThreadService {
       include: {
         replies: true,
         likes: true,
+        User: true,
       },
     });
   }
@@ -28,10 +29,11 @@ class ThreadService {
   // Mengambil thread berdasarkan ID
   async getThreadById(id: number): Promise<Thread | null> {
     const thread = await prisma.thread.findUnique({
-      where: { id : id},
+      where: { id },
       include: {
         replies: true,
         likes: true,
+        User: true, 
       }     
     });
     if (!thread) {
@@ -46,14 +48,22 @@ class ThreadService {
 
   // Memperbarui thread (hanya pemilik atau admin)
   async updateThread(id: number, data: createThreadDTO) {
+    const thread = await prisma.thread.findUnique({ where: { id } });
+    if (!thread) {
+      throw {
+        status: 404,
+        message: "Thread not found",
+        code: CustomErrorCode.USER_NOT_EXISTS,
+      } as customError;
+    }
     return await prisma.thread.update({
-      where: { id: id },
+      where: { id},
       data: { ...data },
     });
   }
 
   // Menghapus thread (hanya pemilik atau admin)
-  async deleteThread(id: number): Promise<Thread | null> {
+  async deleteThread(id: number): Promise<void> {
     const thread = await prisma.thread.findUnique({
         where: { id },
       });
@@ -66,21 +76,22 @@ class ThreadService {
         } as customError;
       }
     
-    return await prisma.thread.delete({
-      where: { id: id },
+     await prisma.thread.delete({
+      where: { id },
     });
   }
 
   // Membalas thread (reply)
-  async replyToThread(threadId: number, content: string, userid: number) {
+  async replyToThread(threadId: number,data: createThreadDTO, userId: number) {
     return await prisma.thread.create({
       data: {
-        content: content,
+        content: data.content,
         repliesById: threadId,
-        userId: userid,
+        userId,
       },
     });
   }
+
 }
 
 export default new ThreadService();

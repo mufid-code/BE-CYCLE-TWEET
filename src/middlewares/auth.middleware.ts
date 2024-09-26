@@ -1,6 +1,7 @@
 import { Role } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { handleError } from "./errorHandler";
 
 export function authentication(
   req: Request,
@@ -24,12 +25,12 @@ export function authentication(
   }
 
   try {
-    const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key';
+    const JWT_SECRET = process.env.JWT_SECRET || 'ACCESS_TOKEN';
     const decoded = jwt.verify(token, JWT_SECRET);
     (req as any).user = decoded; // Menyimpan user di request
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Invalid token" });
+    handleError(res, { status: 400, message: 'Invalid token.' });
   }
 }
 

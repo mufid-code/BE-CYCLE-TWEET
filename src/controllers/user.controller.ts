@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { updateUserSchema, userSchema } from '../utils/user.schema';
+import {  userSchema } from '../utils/user.schema';
 import UserService from '../services/user.service';
 import userService from '../services/user.service';
 
@@ -45,7 +45,7 @@ class UserController{
   async update(req: Request, res: Response) {
     try {
       const userId  = Number(req.params.id);
-      const value = await updateUserSchema.validateAsync(req.body);
+      const value = await userSchema.validateAsync(req.body);
       const user = await userService.updateUser(userId, value);
       res.json(user);
     } catch (error) {
@@ -54,9 +54,8 @@ class UserController{
   }
   async delete(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-
-      const users = await userService.deleteUser(Number(id));
+      const userId = (req as any).user.userId;
+      const users = await userService.deleteUser(userId);
       res.json(users);
     } catch (error) {
       res.status(500).json(error);

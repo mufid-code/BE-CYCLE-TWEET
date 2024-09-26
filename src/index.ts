@@ -2,15 +2,15 @@
 import express, { Express, Request, Response , Application } from 'express';
 import dotenv from 'dotenv';
 import { routerv1 } from './routes/v1';
-import swaggerDoc from './docs/swaggerDoc';
+import { setupSwagger } from './docs/swaggerDoc';
+
+
 var cors = require('cors')
-const swaggerUi = require("swagger-ui-express");
 const bodyParser = require("body-parser");
-const swaggerJsdoc = require("swagger-jsdoc");
 //For env File 
 dotenv.config();
-
-const app: Application = express();
+const app = express();
+// const app: Application = express();
 
 // parse json request body
 app.use(express.json());
@@ -19,15 +19,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors())
 
-
-const specs = swaggerJsdoc(swaggerDoc);
-app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(specs)
-);
-
 app.use("/api/v1", routerv1);
+
+// Setup Swagger di aplikasi
+setupSwagger(app);
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => {

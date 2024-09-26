@@ -1,11 +1,9 @@
-import { createUserDTO } from '../dto/user.dto';
 import prisma from '../prisma/prisma';
 import { comparePassword, hashPassword } from '../utils/encryption';
 import { LoginDTO, RegisterDTO } from '../dto/auth.dto';
 import { User } from '@prisma/client';
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { customError, CustomErrorCode } from '../types/custom-error';
+import userService from './user.service';
 
 class AuthService {
   async register(data: RegisterDTO): Promise<Omit<User, "password"> | null> {
@@ -18,7 +16,7 @@ class AuthService {
     };
    async LoginUser(
     data: LoginDTO
-  ): Promise<{ user: Omit<User, "password">; token: string }> {
+  ): Promise<{ user: Omit<User, "password">; tokens:any }> {
     const user =  await prisma.user.findUnique({
         where: {
           email: data.email,
@@ -46,13 +44,13 @@ class AuthService {
       }
       const { password, ...userToSign } = user;
 
-    const secretKey = process.env.JWT_SECRET as string;
+    // const secretKey = process.env.JWT_SECRET as string;
 
-    const token = jwt.sign(userToSign, secretKey);
-
+    // const token = jwt.sign(userToSign, secretKey);
+    const tokens = await userService.generateTokens(userToSign.id);
     return {
       user: userToSign,
-      token: token,
+      tokens,
     };
     }
 }

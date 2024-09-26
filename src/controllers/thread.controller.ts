@@ -9,8 +9,8 @@ class ThreadController {
       if (error) {
         return res.status(400).json({ error: error.details[0].message });
       }
-      const threadId = Number(req.params.userId);// Dari token JWT
-      const thread = await ThreadService.createThread(value, threadId);
+      const userId = (req as any).user.userId;// Dari token JWT
+      const thread = await ThreadService.createThread(value, userId);
       res.status(201).json(thread);
     } catch (error) {
       res.status(500).json(error);
@@ -21,14 +21,14 @@ class ThreadController {
     try {
       const { error, value } = ThreadSchema.validate(req.body);
       const threadId = Number(req.params.id);
-
+      
       const updatedThread = await ThreadService.updateThread(threadId, value);
       res.json(updatedThread);
     } catch (error) {
       res.status(500).json({ error: 'Failed to update thread' });
     }
   }
-
+  
   async delete(req: Request, res: Response) {
     try {
       const threadId = Number(req.params.id);
@@ -38,7 +38,7 @@ class ThreadController {
       res.status(500).json({ error: 'Failed to delete thread' });
     }
   }
-
+  
   async findByIdThread(req: Request, res: Response) {
     try {
       const threadId = Number(req.params.id);
@@ -48,7 +48,7 @@ class ThreadController {
       res.status(500).json({ error: 'Failed to fetch thread' });
     }
   }
-
+  
   async findAllThreads(req: Request, res: Response) {
     try {
       const threads = await ThreadService.getAllThreads();
@@ -57,14 +57,14 @@ class ThreadController {
       res.status(500).json({ error: 'Failed to fetch threads' });
     }
   }
-
+  
   async reply(req: Request, res: Response) {
     try {
-      const { content } = req.body;
+      const  {value} = ThreadSchema.validate(req.body);
       const threadId = Number(req.params.id);
-      const authorId = (req as any).user.userId;
-
-      const reply = await ThreadService.replyToThread(threadId, authorId, content);
+      const userId = (req as any).user.userId;
+      
+      const reply = await ThreadService.replyToThread(threadId, value, userId);
       res.status(201).json(reply);
     } catch (error) {
       res.status(500).json({ error: 'Failed to reply to thread' });
