@@ -20,6 +20,7 @@ class LikeService {
     return await prisma.like.deleteMany({
       where: { userId, threadId }
     });
+    
   }
 
   async getLikesByThread(threadId: number) {

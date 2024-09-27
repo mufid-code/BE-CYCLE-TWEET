@@ -19,41 +19,21 @@ const swaggerDefinition = {
         url: 'http://localhost:8000/api/v1',
       },
     ],
-    // paths: {
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT', // JWT format for bearer token
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [], // Menambahkan token bearer pada seluruh route yang memerlukan otorisasi
+      },
+    ],
    
-    // components: {
-    //   schemas: {
-    //     Thread: {
-    //       type: 'object',
-    //       properties: {
-    //         id: {
-    //           type: 'integer',
-    //           example: 1
-    //         },
-    //         content: {
-    //           type: 'string',
-    //           example: 'This is a thread content'
-    //         },
-    //         imageUrl: {
-    //           type: 'string',
-    //           format: 'uri',
-    //           example: 'http://example.com/image.png'
-    //         },
-    //         userId: {
-    //           type: 'integer',
-    //           example: 123
-    //         },
-    //         replies: {
-    //           type: 'array',
-    //           items: {
-    //             $ref: '#/components/schemas/Thread'
-    //           }
-    //         }
-    //       },
-    //       required: ['content']
-    //     }
-    //   }
-    // }
   };
 
 const options = {

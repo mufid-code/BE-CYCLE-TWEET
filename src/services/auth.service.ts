@@ -4,6 +4,7 @@ import { LoginDTO, RegisterDTO } from '../dto/auth.dto';
 import { User } from '@prisma/client';
 import { customError, CustomErrorCode } from '../types/custom-error';
 import userService from './user.service';
+import jwt from 'jsonwebtoken';
 
 class AuthService {
   async register(data: RegisterDTO): Promise<Omit<User, "password"> | null> {
@@ -44,13 +45,14 @@ class AuthService {
       }
       const { password, ...userToSign } = user;
 
-    // const secretKey = process.env.JWT_SECRET as string;
+    const secretKey = process.env.JWT_SECRET as string;
 
-    // const token = jwt.sign(userToSign, secretKey);
-    const tokens = await userService.generateTokens(userToSign.id);
+    const token = jwt.sign(userToSign, secretKey);
+    
+    // const tokens = await userService.generateTokens(userToSign.id);
     return {
       user: userToSign,
-      tokens,
+      tokens: token,
     };
     }
 }

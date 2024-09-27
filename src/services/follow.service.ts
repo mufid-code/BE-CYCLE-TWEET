@@ -24,13 +24,19 @@ class FollowerService {
 
   async getFollowers(userId: number) {
     return await prisma.follower.findMany({
-      where: { followingId: userId }
+      where: { followingId: userId },
+      include: {
+        follower:true
+      }
     });
   }
 
   async getFollowing(userId: number) {
     return await prisma.follower.findMany({
-      where: { followerId: userId }
+      where: { followerId: userId },
+      include: {
+        following: true
+      }
     });
   }
 }

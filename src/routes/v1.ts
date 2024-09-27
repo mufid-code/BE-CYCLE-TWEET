@@ -4,13 +4,22 @@ import { authentication, authorize } from '../middlewares/auth.middleware';
 import userController from '../controllers/user.controller';
 import threadController from '../controllers/thread.controller';
 import likeController from '../controllers/like.controller';
+import { upload } from '../middlewares/uploadFile.middleware';
+import followController from '../controllers/follow.controller';
 
 export const routerv1 = express.Router();
 
 // AUTH
+
 /**
  * @swagger
- * /register:
+ * tags:
+ *   name: Auth
+ *   description: User authentication
+ */
+/**
+ * @swagger
+ * /auth/register:
  *   post:
  *     summary: Register a new user
  *     description: Register a new user with name, email, and password
@@ -40,11 +49,11 @@ export const routerv1 = express.Router();
  *       500:
  *         description: Internal server error
  */
-routerv1.post( '/register', authController.register);
+routerv1.post( '/auth/register', authController.register);
 
 /**
  * @swagger
- * /login:
+ * /auth/login:
  *   post:
  *     summary: Log in a user
  *     description: Authenticate a user and return tokens
@@ -71,7 +80,7 @@ routerv1.post( '/register', authController.register);
  *       500:
  *         description: Internal server error
  */
-routerv1.post( '/login', authController.Login);
+routerv1.post( '/auth/login', authController.Login);
 
 // USER
 /**
@@ -177,6 +186,8 @@ routerv1.put("/users/:id", userController.update);
  *     summary: Get all users
  *     description: Retrieve a list of all users (admin only)
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of users
@@ -191,6 +202,8 @@ routerv1.get("/users",authentication,authorize(['ADMIN']), userController.findAl
  *     summary: DELETE users
  *     description: Retrieve a list of all users (admin only)
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: delete of users byId
@@ -205,6 +218,8 @@ routerv1.delete("/users/:id",authentication,authorize(['ADMIN']), userController
  *     summary: Get all users
  *     description: Retrieve a list of all users (admin only)
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: A list of users
@@ -212,46 +227,75 @@ routerv1.delete("/users/:id",authentication,authorize(['ADMIN']), userController
  *         description: Internal server error
  */
 routerv1.get( '/admin/users',authentication,authorize(['ADMIN']), userController.getUsers);
+
+
 // THREADS
-/** 
+/**
  * @swagger
- * '/threads': 
- *       get: 
- *         summary: 'Retrieve all threads'
- *         responses: 
- *           200: 
- *             description: 'A list of threads'
- *           500: 
- *             description: 'Internal server error'          
- * 
- */ 
+ * tags:
+ *   name: Thread
+ *   description: Thread management
+ */
+/**
+ * @swagger
+ * /threads:
+ *   get:
+ *     summary: Get all threads
+ *     tags: [Thread]
+ *     responses:
+ *       200:
+ *         description: A list of threads
+ */
 routerv1.get("/threads", threadController.findAllThreads);
 /** 
  * @swagger
- * '/threads/{id}': 
- *       get: 
- *         summary: 'find threads by id'
- *         responses: 
- *           200: 
- *             description: 'A list of threads'
- *           500: 
- *             description: 'Internal server error'          
- * 
- */ 
-routerv1.get("/threads/:id", authentication, threadController.findByIdThread);
+ * /threads/{id}:
+ *   get:
+ *     summary: Get thread by ID
+ *     tags: [Thread]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The thread ID
+ *     responses:
+ *       200:
+ *         description: The thread data
+ *       404:
+ *         description: Thread not found
+ */
+routerv1.get("/threads/:id", threadController.findByIdThread);
 /** 
- * @swagger
- * '/threads/{userId}': 
- *       post: 
- *         summary: 'create threads'
- *         responses: 
- *           200: 
- *             description: 'A list of threads'
- *           500: 
- *             description: 'Internal server error'          
- * 
- */ 
-routerv1.post("/threads/:userId",authentication, threadController.create);
+  * /threads:
+ *   post:
+ *     summary: Create a new thread
+ *     tags: [Thread]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *             required:
+ *               - content
+ *     responses:
+ *       201:
+ *         description: Thread created successfully
+ *       400:
+ *         description: Invalid data
+ *       401:
+ *         description: Unauthorized
+ */
+routerv1.post("/threads",authentication, upload.single("image"),threadController.create);
 /** 
  * @swagger
  * '/threads/{id}': 
@@ -267,16 +311,23 @@ routerv1.post("/threads/:userId",authentication, threadController.create);
 routerv1.put("/threads/:id",authentication, threadController.update);
 /** 
  * @swagger
- * '/threads/{id}': 
- *       delete: 
- *         summary: 'delete threads'
- *         responses: 
- *           200: 
- *             description: 'A list of threads'
- *           500: 
- *             description: 'Internal server error'          
- * 
- */ 
+ * /threads/{id}:
+ *   delete:
+ *     summary: Delete thread by ID
+ *     tags: [Thread]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The thread ID
+ *     responses:
+ *       200:
+ *         description: Thread deleted
+ *       404:
+ *         description: Thread not found
+ */
 routerv1.delete("/threads/:id",authentication, threadController.delete);
 /** 
  * @swagger
@@ -294,11 +345,47 @@ routerv1.post("/threads/:id/reply",authentication, threadController.reply);
 // Like
 /**
  * @swagger
- * /threads/{threadId}/like:
+ * tags:
+ *   name: Like
+ *   description: Like management
+ */
+
+/**
+ * @swagger
+ * /likes:
  *   post:
- *     summary: Like a thread
- *     description: Like a thread by the authenticated user
- *     tags: [Likes]
+ *     summary: Add a like to a thread
+ *     tags: [Like]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               threadId:
+ *                 type: integer
+ *             required:
+ *               - threadId
+ *     responses:
+ *       201:
+ *         description: Like added successfully
+ *       400:
+ *         description: Invalid data
+ *       401:
+ *         description: Unauthorized
+ */
+routerv1.post('/likes',authentication, likeController.addLike);
+/**
+ * @swagger
+ * /likes/{threadId}:
+ *   delete:
+ *     summary: Remove a like from a thread
+ *     tags: [Like]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: threadId
@@ -308,58 +395,123 @@ routerv1.post("/threads/:id/reply",authentication, threadController.reply);
  *         description: The thread ID
  *     responses:
  *       200:
- *         description: Thread liked
- *       400:
- *         description: Bad request
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Internal server error
+ *         description: Like removed successfully
+ *       404:
+ *         description: Like not found
  */
-routerv1.post('/threads/:threadId/like',authentication, likeController.addLike);
+routerv1.delete('/likes/:threadId',authentication, likeController.removeLike);
+/**
+ * @swagger
+ * /likes/thread/{threadId}:
+ *   get:
+ *     summary: Get all likes for a thread
+ *     tags: [Like]
+ *     parameters:
+ *       - in: path
+ *         name: threadId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The thread ID
+ *     responses:
+ *       200:
+ *         description: List of likes for the thread
+ */
+routerv1.get('/likes/thread/:threadId', likeController.getLikesByThread);
+// Follower
+/**
+ * @swagger
+ * tags:
+ *   name: Follower
+ *   description: Follower management
+ */
 
 /**
  * @swagger
- * /threads/{threadId}/like:
- *   delete:
- *     summary: Remove like from thread
- *     description: Remove like from thread by the authenticated user
- *     tags: [Likes]
- *     parameters:
- *       - in: path
- *         name: threadId
- *         schema:
- *           type: integer
- *         required: true
- *         description: The thread ID
+ * /followers:
+ *   post:
+ *     summary: Follow a user
+ *     tags: [Follower]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               followingId:
+ *                 type: integer
+ *             required:
+ *               - followingId
  *     responses:
- *       204:
- *         description: Like removed
+ *       201:
+ *         description: Follow successful
+ *       400:
+ *         description: Invalid data or already following
  *       401:
  *         description: Unauthorized
- *       500:
- *         description: Internal server error
  */
-routerv1.delete('/threads/:threadId/like',authentication, likeController.removeLike);
+routerv1.post('/followers', authentication, followController.follow);
+
 /**
  * @swagger
- * /threads/{threadId}/like:
- *   get:
- *     summary: likes from threads
- *     tags: [Likes]
+ * /followers/{followingId}:
+ *   delete:
+ *     summary: Unfollow a user
+ *     tags: [Follower]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: threadId
+ *         name: followingId
  *         schema:
  *           type: integer
  *         required: true
- *         description: The thread ID
+ *         description: The ID of the user to unfollow
  *     responses:
- *       204:
- *         description: get Likes 
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Internal server error
+ *       200:
+ *         description: Unfollow successful
+ *       404:
+ *         description: Not following the user
  */
-routerv1.get('/threads/:threadId/likes',authentication, likeController.getLikesByThread);
+routerv1.delete('/followers/:followingId', authentication, followController.unfollow);
+
+/**
+ * @swagger
+ * /followers/{userId}:
+ *   get:
+ *     summary: Get followers of a user
+ *     tags: [Follower]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the user
+ *     responses:
+ *       200:
+ *         description: List of followers
+ */
+routerv1.get('/followers/:userId', followController.getFollowers);
+
+/**
+ * @swagger
+ * /following/{userId}:
+ *   get:
+ *     summary: Get users followed by a user
+ *     tags: [Follower]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the user
+ *     responses:
+ *       200:
+ *         description: List of following users
+ */
+routerv1.get('/following/:userId', followController.getFollowing);

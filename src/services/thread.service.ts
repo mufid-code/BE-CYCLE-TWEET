@@ -21,7 +21,12 @@ class ThreadService {
       include: {
         replies: true,
         likes: true,
-        User: true,
+        User: {
+          select: {
+            name: true,
+            avatarUrl: true
+          }
+        },
       },
     });
   }
@@ -33,7 +38,12 @@ class ThreadService {
       include: {
         replies: true,
         likes: true,
-        User: true, 
+        User: {
+          select: {
+            name: true,
+            avatarUrl: true
+          }
+        }, 
       }     
     });
     if (!thread) {

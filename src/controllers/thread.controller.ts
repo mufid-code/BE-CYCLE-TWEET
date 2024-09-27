@@ -33,7 +33,7 @@ class ThreadController {
     try {
       const threadId = Number(req.params.id);
       const deleteThread =await ThreadService.deleteThread(threadId);
-      res.status(204).json(deleteThread);
+      res.status(204).json({ message: 'Thread deleted', deleteThread});
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete thread' });
     }
