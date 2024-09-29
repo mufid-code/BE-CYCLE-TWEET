@@ -5,12 +5,20 @@ import { ThreadSchema } from '../utils/thread.schema';
 class ThreadController {
   async create(req: Request, res: Response) {
     try {
-      const { error, value } = ThreadSchema.validate(req.body);
-      if (error) {
-        return res.status(400).json({ error: error.details[0].message });
+      // console.log(req.body); // Log body
+      // console.log(req.file);  // Log file
+      // const { error, value } = ThreadSchema.validate(req.body);
+      // if (error) {
+      //   return res.status(400).json({ error: error.details[0].message });
+      // }
+      const {content} = req.body
+      const imageUrl = req.file?.path;
+      if (!imageUrl) {
+        return res.status(400).json({ message: 'No file uploaded' });
       }
+      
       const userId = (req as any).user.userId;// Dari token JWT
-      const thread = await ThreadService.createThread(value, userId);
+      const thread = await ThreadService.createThread(content ,userId,imageUrl);
       res.status(201).json(thread);
     } catch (error) {
       res.status(500).json(error);

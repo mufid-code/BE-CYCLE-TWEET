@@ -6,7 +6,7 @@ import { setupSwagger } from './docs/swaggerDoc';
 
 
 var cors = require('cors')
-const bodyParser = require("body-parser");
+// const bodyParser = require("body-parser");
 //For env File 
 dotenv.config();
 const app = express();
@@ -18,6 +18,7 @@ app.use(express.json());
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
 app.use(cors())
+app.use("/uploads", express.static("uploads"));
 
 app.use("/api/v1", routerv1);
 

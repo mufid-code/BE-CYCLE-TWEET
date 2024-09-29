@@ -1,9 +1,11 @@
-import { Role } from "@prisma/client";
+import { Role, TokenType } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { handleError } from "./errorHandler";
+import tokenService from "../services/token.service";
+import { customError, CustomErrorCode } from "../types/custom-error";
 
-export function authentication(
+export async function authentication(
   req: Request,
   res: Response,
   next: NextFunction
@@ -25,12 +27,25 @@ export function authentication(
   }
 
   try {
-    const JWT_SECRET = process.env.JWT_SECRET || 'ACCESS_TOKEN';
-    const decoded = jwt.verify(token, JWT_SECRET);
-    (req as any).user = decoded; // Menyimpan user di request
+    // const JWT_SECRET = process.env.JWT_SECRET || "ACCESS_TOKEN_SECRET";
+    // Verifikasi token
+    // const decoded = jwt.verify(token, JWT_SECRET) as { userId: number , };
+
+    // Cek token di database
+    const tokenInDb = await tokenService.validateToken(token, TokenType.ACCESS_TOKEN);
+    if (!tokenInDb) {
+      throw {
+        code: CustomErrorCode.INVALID_TOKEN,
+        message: 'Token is invalid or expired',
+        status: 401,
+      } as customError;
+    }
+
+    // Jika token valid, simpan informasi pengguna di request
+    (req as any).user = tokenInDb;// Menyimpan userId ke req untuk digunakan di endpoint selanjutnya
     next();
   } catch (error) {
-    handleError(res, { status: 400, message: 'Invalid token.' });
+    return res.status(401).json({ message: 'Unauthorized', error  });
   }
 }
 

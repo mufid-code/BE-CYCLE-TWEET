@@ -16,3 +16,12 @@ export const loginSchema = Joi.object({
     role: Joi.string().valid('USER', 'ADMIN').default('USER'),
     isEmailVerified: Joi.boolean().default(false),
   });
+
+export const forgetPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+export const resetPasswordSchema = Joi.object({
+  password: Joi.string().min(6).required(),
+  token: Joi.string().required(),
+});

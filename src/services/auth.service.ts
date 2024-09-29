@@ -5,6 +5,7 @@ import { User } from '@prisma/client';
 import { customError, CustomErrorCode } from '../types/custom-error';
 import userService from './user.service';
 import jwt from 'jsonwebtoken';
+import tokenService from './token.service';
 
 class AuthService {
   async register(data: RegisterDTO): Promise<Omit<User, "password"> | null> {
@@ -43,17 +44,37 @@ class AuthService {
           status: 404,
         } as customError;
       }
-      const { password, ...userToSign } = user;
 
-    const secretKey = process.env.JWT_SECRET as string;
+    // const { password, ...userToSign } = user;
 
-    const token = jwt.sign(userToSign, secretKey);
+    // const secretKey = process.env.JWT_SECRET as string;
+
+    // const token = jwt.sign(userToSign, secretKey);
     
-    // const tokens = await userService.generateTokens(userToSign.id);
-    return {
-      user: userToSign,
-      tokens: token,
-    };
+    // // const tokens = await userService.generateTokens(userToSign.id);
+    // return {
+    //   user: userToSign,
+    //   tokens: token,
+    // };
+    const accessToken = await tokenService.createAccessToken(user);
+    const refreshToken = await tokenService.createRefreshToken(user);
+    const { password, ...userWithoutPassword } = user;
+
+    return { user: userWithoutPassword, tokens: { accessToken, refreshToken } };
+
+    }
+
+    async findUserByEmail(email: string) {
+      return await prisma.user.findUnique({
+        where: { email },
+      });
+    }
+  
+    async updateUserPassword(userId: number, newPassword: string) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { password: newPassword },
+      });
     }
 }
 

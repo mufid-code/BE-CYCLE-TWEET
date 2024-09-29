@@ -1,9 +1,13 @@
 import { Request, Response } from 'express';
 
-import { loginSchema, registerSchema } from '../utils/auth.schema';
+import { forgetPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from '../utils/auth.schema';
 import { comparePassword } from '../utils/encryption';
 import authService from '../services/auth.service';
 import userService from '../services/user.service';
+import prisma from '../prisma/prisma';
+import bcrypt from 'bcrypt';
+import { sendEmail } from '../services/email.service';
+import tokenService from '../services/token.service';
 
 class AuthController {
   async register(req: Request, res: Response)  {
@@ -35,6 +39,59 @@ class AuthController {
       res.json(error);
     }
   }
-  
+
+  async forgetPassword(req: Request, res: Response) {
+    const { email } = req.body;
+
+    // Validasi email input
+    const { error } = forgetPasswordSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    const user = await authService.findUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ message: 'User with this email does not exist' });
+    }
+
+    const resetToken = await tokenService.createPasswordResetToken(user.id);
+    const resetURL = `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Your password reset token',
+      text: `You requested a password reset. Please click this link to reset your password: ${resetURL}`,
+    });
+
+    return res.status(200).json({ message: 'Token sent to email!' });
+  }
+
+  async resetPassword(req: Request, res: Response) {
+    const { token, password } = req.body;
+    const userId = (req as any).user.id;
+    // Validasi input reset password
+    const { error } = resetPasswordSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    const passwordResetToken = await tokenService.validatePasswordResetToken(token);
+    // if (!passwordResetToken) {
+    //    res.status(400).json({ message: 'Token is invalid or has expired' });
+    // }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await authService.updateUserPassword(userId, hashedPassword);
+
+    
+    // Hapus token yang telah digunakan
+    await prisma.token.delete({
+      where: { id: userId },
+    });
+
+    return res.status(200).json({ message: 'Password successfully reset' });
+  }
+ 
 }
 export default new AuthController();

@@ -4,8 +4,13 @@ import { authentication, authorize } from '../middlewares/auth.middleware';
 import userController from '../controllers/user.controller';
 import threadController from '../controllers/thread.controller';
 import likeController from '../controllers/like.controller';
-import { upload } from '../middlewares/uploadFile.middleware';
+// import { upload } from '../middlewares/uploadFile.middleware';
 import followController from '../controllers/follow.controller';
+import validate from '../middlewares/validate';
+import { forgetPasswordSchema, resetPasswordSchema } from '../utils/auth.schema';
+import { updateUserAvatar } from '../controllers/upload.controller';
+import upload from '../utils/multer';
+import { ThreadSchema } from '../utils/thread.schema';
 
 export const routerv1 = express.Router();
 
@@ -107,7 +112,7 @@ routerv1.post( '/auth/login', authController.Login);
  *         description: User not found
  */
 routerv1.get("/users/:id", userController.findById);
-
+routerv1.get("/users/search", userController.searchUsers);
 /**
  * @swagger
  * /users:
@@ -267,8 +272,10 @@ routerv1.get("/threads", threadController.findAllThreads);
  *         description: Thread not found
  */
 routerv1.get("/threads/:id", threadController.findByIdThread);
+
 /** 
-  * /threads:
+ * @swagger
+ * /threads:
  *   post:
  *     summary: Create a new thread
  *     tags: [Thread]
@@ -277,7 +284,7 @@ routerv1.get("/threads/:id", threadController.findByIdThread);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *          multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -285,6 +292,7 @@ routerv1.get("/threads/:id", threadController.findByIdThread);
  *                 type: string
  *               imageUrl:
  *                 type: string
+ *                 format: binary
  *             required:
  *               - content
  *     responses:
@@ -295,7 +303,7 @@ routerv1.get("/threads/:id", threadController.findByIdThread);
  *       401:
  *         description: Unauthorized
  */
-routerv1.post("/threads",authentication, upload.single("image"),threadController.create);
+routerv1.post("/threads",authentication, upload.single('imageUrl'), validate(ThreadSchema),threadController.create);
 /** 
  * @swagger
  * '/threads/{id}': 
@@ -515,3 +523,94 @@ routerv1.get('/followers/:userId', followController.getFollowers);
  *         description: List of following users
  */
 routerv1.get('/following/:userId', followController.getFollowing);
+
+
+/**
+ * @swagger
+ * /auth/forget-password:
+ *   post:
+ *     summary: Request a password reset
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Token sent to email
+ *       404:
+ *         description: User not found
+ */
+routerv1.post('/auth/forget-password',validate(forgetPasswordSchema), authController.forgetPassword);
+
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset password with token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password successfully reset
+ *       400:
+ *         description: Token invalid or expired
+ */
+routerv1.post('/auth/reset-password',validate(resetPasswordSchema), authController.resetPassword);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Upload
+ *   description: File upload routes
+ */
+
+/**
+ * @swagger
+ * /upload/avatar:
+ *   post:
+ *     summary: Upload user avatar
+ *     tags: [Upload]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Avatar updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Bad request or no file uploaded
+ */
+routerv1.post('/upload/avatar', authentication, upload.single('avatar'), updateUserAvatar);

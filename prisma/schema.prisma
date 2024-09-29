@@ -75,6 +75,8 @@ model Token {
   createdAt DateTime  @default(now())
   user      User      @relation(fields: [userId], references: [id])
   userId    Int
+
+  @@unique([userId, type], name: "userId_type_unique")
 }
 
 enum Role {
@@ -85,4 +87,5 @@ enum Role {
 enum TokenType {
   ACCESS_TOKEN
   REFRESH_TOKEN
+  PASSWORD_RESET_TOKEN
 }

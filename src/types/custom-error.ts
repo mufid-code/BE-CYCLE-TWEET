@@ -6,4 +6,5 @@ export type customError = {
   
 export enum CustomErrorCode {
   USER_NOT_EXISTS = "USER_NOT_EXISTS",
+  INVALID_TOKEN = "INVALID_TOKEN",
 }

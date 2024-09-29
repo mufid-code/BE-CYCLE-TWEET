@@ -6,11 +6,12 @@ import { customError, CustomErrorCode } from '../types/custom-error';
 class ThreadService {
 
   // Membuat thread baru
-  async createThread(data: createThreadDTO, userId: number): Promise<Thread | null> {
+  async createThread(content: string, userId: number,imageUrl?:string): Promise<Thread | null> {
     return await prisma.thread.create({
       data: {
-       ...data,
-        userId
+       content : content,
+       imageUrl : imageUrl,
+       userId : userId
       },
     });
   }
