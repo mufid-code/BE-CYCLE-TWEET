@@ -339,17 +339,39 @@ routerv1.put("/threads/:id",authentication, threadController.update);
 routerv1.delete("/threads/:id",authentication, threadController.delete);
 /** 
  * @swagger
- * '/threads/{id}/reply': 
- *       post: 
- *         summary: 'reply threads'
- *         responses: 
- *           200: 
- *             description: 'A list of threads'
- *           500: 
- *             description: 'Internal server error'          
- * 
- */ 
-routerv1.post("/threads/:id/reply",authentication, threadController.reply);
+ * /threads/{id}/replies:
+ *   post:
+ *     summary: Reply to a thread
+ *     tags: [Thread]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The thread ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *             required:
+ *               - content
+ *     responses:
+ *       201:
+ *         description: Reply created successfully
+ *       400:
+ *         description: Invalid data
+ *       401:
+ *         description: Unauthorized
+ */
+routerv1.post("/threads/:id/replies",authentication, threadController.reply);
 // Like
 /**
  * @swagger

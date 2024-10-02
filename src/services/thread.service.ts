@@ -93,10 +93,10 @@ class ThreadService {
   }
 
   // Membalas thread (reply)
-  async replyToThread(threadId: number,data: createThreadDTO, userId: number) {
+  async replyToThread(threadId: number,content: string, userId: number) {
     return await prisma.thread.create({
       data: {
-        content: data.content,
+        content: content,
         repliesById: threadId,
         userId,
       },

@@ -68,14 +68,14 @@ class ThreadController {
   
   async reply(req: Request, res: Response) {
     try {
-      const  {value} = ThreadSchema.validate(req.body);
+      const {content} = req.body
       const threadId = Number(req.params.id);
       const userId = (req as any).user.userId;
       
-      const reply = await ThreadService.replyToThread(threadId, value, userId);
+      const reply = await ThreadService.replyToThread(threadId, content, userId);
       res.status(201).json(reply);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to reply to thread' });
+      res.status(500).json( {message: 'Failed to reply to thread' , error});
     }
   }
 }
