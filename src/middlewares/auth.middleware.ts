@@ -1,7 +1,5 @@
 import { Role, TokenType } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import { handleError } from "./errorHandler";
 import tokenService from "../services/token.service";
 import { customError, CustomErrorCode } from "../types/custom-error";
 

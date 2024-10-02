@@ -4,18 +4,19 @@ import likeService from '../services/like.service';
 class LikeController {
   async addLike(req: Request, res: Response) {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
+      // const threadId = Number(req.params.threadId);
       const {threadId} = req.body;
       const like = await likeService.addLike(userId, threadId);
       res.json(like);
     } catch (error) {
-      res.status(500).json({ message: 'Error adding like', error });
+      res.status(500).json({ message: 'Error adding like or thread not found', error });
     }
   }
 
   async removeLike(req: Request, res: Response) {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
       const threadId = Number(req.params.threadId);
       const like = await likeService.removeLike(userId, threadId);
       if (like.count === 0) {

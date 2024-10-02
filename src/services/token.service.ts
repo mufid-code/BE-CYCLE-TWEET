@@ -18,7 +18,7 @@ class TokenService {
       email: user.email,
       iat: Math.floor(Date.now() / 1000),
     };
-    const token = this.generateToken(payload, "15m", JWT_SECRET);
+    const token = this.generateToken(payload, "1d", JWT_SECRET);
 
     await this.saveToken(user.id, token, TokenType.ACCESS_TOKEN);
     return token;

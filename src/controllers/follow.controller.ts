@@ -4,7 +4,7 @@ import followService from '../services/follow.service';
 class FollowerController {
   async follow(req: Request, res: Response) {
     try {
-      const followerId = (req as any).user.id;
+      const followerId = (req as any).user.userId;
       const {followingId} = req.body;
       const follower = await followService.followUser(followerId, Number(followingId));
       if (followerId === followingId) {
@@ -18,7 +18,7 @@ class FollowerController {
 
   async unfollow(req: Request, res: Response) {
     try {
-      const followerId = (req as any).user.id;
+      const followerId = (req as any).user.userId;
       const followingId = Number(req.params.followingId);
       const follow = await followService.unfollowUser(followerId, followingId);
       if (follow.count === 0) {
